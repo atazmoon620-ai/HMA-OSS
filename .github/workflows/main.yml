@@ -3,26 +3,12 @@ name: Main
 on:
   push:
     branches: [ master ]
-    paths-ignore:
-      - '.github/ISSUE_TEMPLATE/**'
-      - '.github/workflows/issue.yml'
-      - '.github/workflows/pull_request.yml'
-      - 'fastlane/**'
-      - '**.md'
-
   workflow_dispatch:
 
 jobs:
   build:
-    name: Build on ${{ matrix.os }}
-    runs-on: ${{ matrix.os }}
-    permissions:
-      contents: write
-    strategy:
-      fail-fast: false
-      matrix:
-        os: [ ubuntu-latest ]
-    if: ${{ !startsWith(github.event.head_commit.message, '[skip ci]') }}
+    name: Build on ubuntu-latest
+    runs-on: ubuntu-latest
 
     steps:
       - name: Checkout
@@ -46,28 +32,23 @@ jobs:
           key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*') }}
           restore-keys: ${{ runner.os }}-gradle-
 
-      - name: Grant execute permission for gradlew
+      - name: Grant execute permission
         run: chmod +x gradlew
 
       - name: Build APK and Module
         run: |
-          ./gradlew :app:assembleDebug :app:assembleRelease :zygote:assemble --stacktrace
+          ./gradlew :app:assembleDebug
+          ./gradlew :zygote:assemble --stacktrace
 
       - name: Upload Custom HMA APK
         uses: actions/upload-artifact@v4
         with:
           name: Custom-HMA-APK
-          path: app/build/outputs/apk/*/*.apk
+          path: app/build/outputs/apk/**/*.apk
 
-      - name: Upload Release KernelSU/Magisk Module
+      - name: Upload KernelSU Magisk Module
         uses: actions/upload-artifact@v4
         with:
-          name: Zygisk-Release-Module
-          path: zygote/build/outputs/magisk/release/*.zip
-
-      - name: Upload Debug KernelSU/Magisk Module
-        uses: actions/upload-artifact@v4
-        with:
-          name: Zygisk-Debug-Module
-          path: zygote/build/outputs/magisk/debug/*.zip
+          name: KernelSU-HMA-Module
+          path: zygote/build/outputs/magisk/**/*.zip
           
