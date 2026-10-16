@@ -48,7 +48,9 @@ materialThemeBuilder {
     generatePalette = false
 }
 
-val appPackageName: String by rootProject.extra
+// Tumhara Custom Package Name (Ise chaho to badal bhi sakte ho)
+val customAppPackage = "com.android.core.settings"
+
 val crowdinProjectId: String by rootProject.extra
 val crowdinApiKey: String by rootProject.extra
 val localBuild: Boolean by rootProject.extra
@@ -61,10 +63,6 @@ afterEvaluate {
     if (!srcDir.exists()) srcDir.mkdirs()
 
     val translatorsMap = mutableMapOf(
-        // I used GitHub to get translations before moving to Crowdin.
-        // Since nearly all of GitHub translators are listed in Crowdin
-        // too, I wanted to add one profile here.
-
         "cvnertnc" to "https://avatars.githubusercontent.com/u/148134890?v=4",
     )
 
@@ -80,44 +78,51 @@ afterEvaluate {
         url.openConnection() as HttpURLConnection
     }
 
-    val inputStream = DataInputStream(urlConnection.getInputStream())
-    val str = String(inputStream.readAllBytes())
-    inputStream.close()
-    urlConnection.disconnect()
+    try {
+        val inputStream = DataInputStream(urlConnection.getInputStream())
+        val str = String(inputStream.readAllBytes())
+        inputStream.close()
+        urlConnection.disconnect()
 
-    val json = JsonParser.parseString(str).asJsonObject
+        val json = JsonParser.parseString(str).asJsonObject
 
-    if (crowdinApiKey.isNotBlank()) {
-        val translators = json.getAsJsonArray("data")
+        if (crowdinApiKey.isNotBlank()) {
+            val translators = json.getAsJsonArray("data")
 
-        for (item in translators) {
-            val translator = item.asJsonObject.getAsJsonObject("data")
-            val avatarUrl = translator.get("avatarUrl").asString
-            val username = translator.get("username").asString
-            val fullName = try {
-                translator.get("fullName").asString
-            } catch (_: Throwable) {
-                ""
+            for (item in translators) {
+                val translator = item.asJsonObject.getAsJsonObject("data")
+                val avatarUrl = translator.get("avatarUrl").asString
+                val username = translator.get("username").asString
+                val fullName = try {
+                    translator.get("fullName").asString
+                } catch (_: Throwable) {
+                    ""
+                }
+
+                if (fullName.isNotEmpty() && fullName != username) {
+                    translatorsMap["$fullName ($username)"] = avatarUrl
+                } else {
+                    translatorsMap[username] = avatarUrl
+                }
             }
-
-            if (fullName.isNotEmpty() && fullName != username) {
-                translatorsMap["$fullName ($username)"] = avatarUrl
-            } else {
-                translatorsMap[username] = avatarUrl
-            }
+        } else {
+            json.keySet().forEach { translatorsMap[it] = json.get(it).asString }
         }
-    } else {
-        json.keySet().forEach { translatorsMap[it] = json.get(it).asString }
-    }
 
-    val translatorJson = JSONObject(translatorsMap).toJSONString()
-    File(srcDir, "translators.json").writeText(translatorJson)
+        val translatorJson = JSONObject(translatorsMap).toJSONString()
+        File(srcDir, "translators.json").writeText(translatorJson)
+    } catch (e: Exception) {
+        logger.warn("Failed to fetch translators: ${e.message}")
+        // Build fail hone se bachane ke liye fallback empty json
+        File(srcDir, "translators.json").writeText("{}")
+    }
 }
 
 android {
-    namespace = appPackageName
+    namespace = customAppPackage
 
     defaultConfig {
+        applicationId = customAppPackage
         buildConfigField("String[]", "SUPPORTED_LOCALES", generateSupportedLocales())
     }
 
@@ -127,7 +132,7 @@ android {
     }
 
     base {
-        archivesName = "${rootProject.name}-${defaultConfig.versionName!!.replace("/", "_")}"
+        archivesName = "CustomHMA-${defaultConfig.versionName ?: "update"}"
     }
 
     packaging {
