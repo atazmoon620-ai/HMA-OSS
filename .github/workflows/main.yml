@@ -23,6 +23,12 @@ jobs:
           distribution: 'temurin'
           java-version: '21'
 
+      - name: Set up Android NDK
+        uses: nttld/setup-ndk@v1
+        with:
+          ndk-version: r26d
+          link-to-sdk: true
+
       - name: Cache gradle
         uses: actions/cache@v4
         with:
@@ -32,13 +38,12 @@ jobs:
           key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*') }}
           restore-keys: ${{ runner.os }}-gradle-
 
-      - name: Grant execute permission
+      - name: Grant execute permission for gradlew
         run: chmod +x gradlew
 
-      - name: Build APK and Magisk Module
+      - name: Build APK and Zygisk Module
         run: |
-          ./gradlew :app:assembleDebug
-          ./gradlew assembleMagisk || ./gradlew :zygote:packageMagisk || ./gradlew tasks --all
+          ./gradlew :app:assembleDebug :zygote:assemble --stacktrace
 
       - name: Upload Custom HMA APK
         uses: actions/upload-artifact@v4
@@ -51,7 +56,6 @@ jobs:
         with:
           name: KernelSU-HMA-Module
           path: |
+            zygote/build/outputs/magisk/**/*.zip
             zygote/build/outputs/**/*.zip
-            out/*.zip
-          if-no-files-found: ignore
-          
+            
