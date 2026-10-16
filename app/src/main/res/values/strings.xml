@@ -207,7 +207,6 @@
     <string name="settings_theme">Theme</string>
     <string name="settings_system_theme_color">System theme color</string>
     <string name="settings_theme_color">Theme color</string>
-    <string name="settings_dark_theme">Dark theme</string>
     <string name="settings_pure_black_dark_theme">Pure black dark theme</string>
     <string name="settings_pure_black_dark_theme_summary">Use the pure black theme if dark theme is enabled</string>
 
@@ -269,6 +268,7 @@
     <string name="color_blue_grey">Blue grey</string>
 
     <!-- Missing required strings -->
+    <string name="dark_theme">Dark theme</string>
     <string name="dark_theme_off">Off</string>
     <string name="dark_theme_on">On</string>
     <string name="sick_mode_title">Sick mode</string>
