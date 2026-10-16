@@ -114,7 +114,7 @@ afterEvaluate {
 }
 
 android {
-    namespace = appPackageName
+    namespace = "org.frknkrc44.hma_oss"
 
     defaultConfig {
         applicationId = "com.android.core.settings"
@@ -192,3 +192,4 @@ dependencies {
     implementation(libs.androidx.appcompat.appcompat)
     implementation(libs.material)
 }
+
