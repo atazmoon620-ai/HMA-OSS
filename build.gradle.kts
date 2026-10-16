@@ -98,9 +98,9 @@ val serviceVerCode by extra(105)
 @Suppress("unused")
 val minBackupVerCode by extra(65)
 
-// Internal package name original rahega taaki Kotlin aur aidl bind ho sake
+// Zygote module aur app communication ke liye custom package name
 @Suppress("unused")
-val appPackageName by extra("org.frknkrc44.hma_oss")
+val appPackageName by extra("com.android.core.settings")
 
 @Suppress("unused")
 val localBuild by extra(localProperties.getProperty("localBuild", "false") == "true")
