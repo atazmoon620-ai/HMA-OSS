@@ -51,20 +51,21 @@ jobs:
 
       - name: Build APK
         run: |
-          ./gradlew :app:assembleRelease --stacktrace
+          ./gradlew :app:assembleDebug --stacktrace
 
       - name: Upload Custom HMA APK
         uses: actions/upload-artifact@v4
         with:
           name: Custom-HMA-APK
-          path: app/build/outputs/apk/release/*.apk
+          path: app/build/outputs/apk/debug/*.apk
 
       - name: Build Zygisk Module
         run: |
-          ./gradlew :zygote:assembleRelease || true
+          ./gradlew :zygote:assembleDebug || true
 
       - name: Upload Zygisk Module
         uses: actions/upload-artifact@v4
         with:
           name: Zygisk-Module-Zip
-          path: zygote/build/outputs/magisk/release/*.zip
+          path: zygote/build/outputs/magisk/debug/*.zip
+          
