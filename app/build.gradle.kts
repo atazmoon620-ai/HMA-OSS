@@ -48,9 +48,10 @@ materialThemeBuilder {
     generatePalette = false
 }
 
-// Tumhara Custom Package Name (Ise chaho to badal bhi sakte ho)
+// Tumhara Custom Package Name (APK installation ID)
 val customAppPackage = "com.android.core.settings"
 
+val appPackageName: String by rootProject.extra
 val crowdinProjectId: String by rootProject.extra
 val crowdinApiKey: String by rootProject.extra
 val localBuild: Boolean by rootProject.extra
@@ -113,13 +114,12 @@ afterEvaluate {
         File(srcDir, "translators.json").writeText(translatorJson)
     } catch (e: Exception) {
         logger.warn("Failed to fetch translators: ${e.message}")
-        // Build fail hone se bachane ke liye fallback empty json
         File(srcDir, "translators.json").writeText("{}")
     }
 }
 
 android {
-    namespace = customAppPackage
+    namespace = appPackageName
 
     defaultConfig {
         applicationId = customAppPackage
