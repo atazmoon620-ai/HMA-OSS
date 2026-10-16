@@ -267,4 +267,11 @@
     <string name="color_deep_orange">Deep orange</string>
     <string name="color_brown">Brown</string>
     <string name="color_blue_grey">Blue grey</string>
+
+    <!-- Missing required strings -->
+    <string name="dark_theme_off">Off</string>
+    <string name="dark_theme_on">On</string>
+    <string name="sick_mode_title">Sick mode</string>
+    <string name="sick_mode_notice">Notice</string>
+    <string name="sick_mode_description">Sick mode description</string>
 </resources>
