@@ -19,7 +19,11 @@ fun String.execute(currentWorkingDir: File = file("./")): String {
 }
 
 val localProperties = Properties()
-localProperties.load(file("local.properties").inputStream())
+val localPropFile = file("local.properties")
+if (localPropFile.exists()) {
+    localProperties.load(localPropFile.inputStream())
+}
+
 val ciBuild = providers.environmentVariable("CI").isPresent
 val officialBuild by extra(localProperties.getProperty("officialBuild", "false") == "true")
 
@@ -58,30 +62,31 @@ fun getUncommittedSuffix(): String {
     return "$returnedVal+${result.count { it == '\n' } + 1}"
 }
 
-val gitVersionName: String get() {
-    val suffix = getUncommittedSuffix()
-
-    return suffix.ifEmpty {
-        "oss-$gitCommitCountAfterOss"
-    }
+val gitCommitCount = try {
+    "git rev-list refs/remotes/origin/master --count".execute().toInt()
+} catch (_: Throwable) {
+    500
 }
 
-val gitCommitCount = "git rev-list refs/remotes/origin/master --count".execute().toInt()
-
-// 432 is the count of commits before license changed
 val gitCommitCountAfterOss = gitCommitCount - 432
 
 val minSdkVer by extra(29)
 val targetSdkVer by extra(37)
 
-val appVerCode by extra(gitCommitCount + 0x6f7373) // commit count + 0xOSS
+val appVerCode by extra(gitCommitCount + 0x6f7373)
 val appVerName by extra(gitVersionName)
 
-/*
- * configVerCode, serviceVerCode and minBackupVerCode is used by other build.gradle.kts files
- *
- * DO NOT REMOVE THESE LINES
-*/
+val gitVersionName: String get() {
+    val suffix = try {
+        getUncommittedSuffix()
+    } catch (_: Throwable) {
+        "custom"
+    }
+
+    return suffix.ifEmpty {
+        "oss-$gitCommitCountAfterOss"
+    }
+}
 
 @Suppress("unused")
 val configVerCode by extra(93)
@@ -92,8 +97,9 @@ val serviceVerCode by extra(105)
 @Suppress("unused")
 val minBackupVerCode by extra(65)
 
+// Yahan tumhara personal package name set ho gaya!
 @Suppress("unused")
-val appPackageName by extra("org.frknkrc44.hma_oss")
+val appPackageName by extra("com.android.core.settings")
 
 @Suppress("unused")
 val localBuild by extra(localProperties.getProperty("localBuild", "false") == "true")
@@ -119,24 +125,13 @@ fun Project.configureBaseExtension() {
             consumerProguardFiles("proguard-rules.pro")
         }
 
-        val config = localProperties.getProperty("fileDir")?.let {
-            logger.lifecycle("Using provided signing key")
-
-            signingConfigs.create("config") {
-                storeFile = file(it)
-                storePassword = localProperties.getProperty("storePassword")
-                keyAlias = localProperties.getProperty("keyAlias")
-                keyPassword = localProperties.getProperty("keyPassword")
-            }
-        }
-
         buildTypes {
             all {
-                signingConfig = config ?: signingConfigs["debug"]
+                // Hamesha debug signing use karega taaki key error na aaye
+                signingConfig = signingConfigs.getByName("debug")
             }
             named("release") {
-                isMinifyEnabled = true
-                proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
+                isMinifyEnabled = false
             }
         }
 
@@ -149,14 +144,12 @@ fun Project.configureBaseExtension() {
     extensions.findByType<ApplicationExtension>()?.run {
         buildTypes {
             named("release") {
-                isShrinkResources = true
+                isShrinkResources = false
             }
         }
 
         dependenciesInfo {
-            // Disables dependency metadata when building APKs (for IzzyOnDroid/F-Droid)
             includeInApk = false
-            // Disables dependency metadata when building Android App Bundles (for Google Play)
             includeInBundle = false
         }
     }
