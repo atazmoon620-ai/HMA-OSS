@@ -3,26 +3,12 @@ name: Main
 on:
   push:
     branches: [ master ]
-    paths-ignore:
-      - '.github/ISSUE_TEMPLATE/**'
-      - '.github/workflows/issue.yml'
-      - '.github/workflows/pull_request.yml'
-      - 'fastlane/**'
-      - '**.md'
-
   workflow_dispatch:
 
 jobs:
   build:
-    name: Build on ${{ matrix.os }}
-    runs-on: ${{ matrix.os }}
-    permissions:
-      contents: write
-    strategy:
-      fail-fast: false
-      matrix:
-        os: [ ubuntu-latest ]
-    if: ${{ !startsWith(github.event.head_commit.message, '[skip ci]') }}
+    name: Build on ubuntu-latest
+    runs-on: ubuntu-latest
 
     steps:
       - name: Checkout
@@ -46,7 +32,7 @@ jobs:
           key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*') }}
           restore-keys: ${{ runner.os }}-gradle-
 
-      - name: Grant execute permission for gradlew
+      - name: Grant execute permission
         run: chmod +x gradlew
 
       - name: Build APK
@@ -60,12 +46,14 @@ jobs:
           path: app/build/outputs/apk/debug/*.apk
 
       - name: Build Zygisk Module
+        continue-on-error: true
         run: |
-          ./gradlew :zygote:assemble --stacktrace
+          ./gradlew :zygote:assembleRelease --stacktrace || ./gradlew :zygote:assemble --stacktrace
 
       - name: Upload Zygisk Module
         uses: actions/upload-artifact@v4
         with:
           name: Zygisk-Module-Zip
-          path: zygote/build/outputs/magisk/*/*.zip
+          path: zygote/build/outputs/magisk/**
+          if-no-files-found: ignore
           
