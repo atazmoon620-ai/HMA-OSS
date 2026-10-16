@@ -1,4 +1,4 @@
-name: Build HMA-OSS
+name: Build HMA-OSS Custom
 
 on:
   push:
@@ -23,12 +23,6 @@ jobs:
           distribution: 'temurin'
           java-version: '21'
 
-      - name: Set up Android NDK
-        uses: nttld/setup-ndk@v1
-        with:
-          ndk-version: r26d
-          link-to-sdk: true
-
       - name: Cache gradle
         uses: actions/cache@v4
         with:
@@ -41,9 +35,13 @@ jobs:
       - name: Grant execute permission for gradlew
         run: chmod +x gradlew
 
-      - name: Build All
+      - name: Step 1 - Build APK
         run: |
-          ./gradlew :app:assembleRelease :zygote:assemble -x lint -x test --stacktrace
+          ./gradlew :app:assembleDebug --stacktrace
+
+      - name: Step 2 - Build Zygote Magisk Module
+        run: |
+          ./gradlew :zygote:assembleDebug --stacktrace || ./gradlew :zygote:assemble --stacktrace
 
       - name: Upload Custom HMA APK
         uses: actions/upload-artifact@v4
@@ -51,12 +49,12 @@ jobs:
           name: Custom-HMA-APK
           path: app/build/outputs/apk/**/*.apk
 
-      - name: Upload Zygisk Magisk Module
+      - name: Upload KernelSU Zygisk Module
         uses: actions/upload-artifact@v4
         with:
           name: KernelSU-Zygisk-Module
           path: |
-            zygote/build/outputs/magisk/**/*.zip
             zygote/build/outputs/**/*.zip
             out/*.zip
+            build/outputs/**/*.zip
             
