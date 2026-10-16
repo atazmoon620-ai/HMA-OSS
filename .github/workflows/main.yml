@@ -3,12 +3,26 @@ name: Main
 on:
   push:
     branches: [ master ]
+    paths-ignore:
+      - '.github/ISSUE_TEMPLATE/**'
+      - '.github/workflows/issue.yml'
+      - '.github/workflows/pull_request.yml'
+      - 'fastlane/**'
+      - '**.md'
+
   workflow_dispatch:
 
 jobs:
   build:
-    name: Build on ubuntu-latest
-    runs-on: ubuntu-latest
+    name: Build on ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    permissions:
+      contents: write
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ ubuntu-latest ]
+    if: ${{ !startsWith(github.event.head_commit.message, '[skip ci]') }}
 
     steps:
       - name: Checkout
@@ -32,28 +46,28 @@ jobs:
           key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*') }}
           restore-keys: ${{ runner.os }}-gradle-
 
-      - name: Grant execute permission
+      - name: Grant execute permission for gradlew
         run: chmod +x gradlew
 
-      - name: Build APK
+      - name: Build APK and Module
         run: |
-          ./gradlew :app:assembleDebug --stacktrace
+          ./gradlew :app:assembleDebug :app:assembleRelease :zygote:assemble --stacktrace
 
       - name: Upload Custom HMA APK
         uses: actions/upload-artifact@v4
         with:
           name: Custom-HMA-APK
-          path: app/build/outputs/apk/debug/*.apk
+          path: app/build/outputs/apk/*/*.apk
 
-      - name: Build Zygisk Module
-        continue-on-error: true
-        run: |
-          ./gradlew :zygote:assembleRelease --stacktrace || ./gradlew :zygote:assemble --stacktrace
-
-      - name: Upload Zygisk Module
+      - name: Upload Release KernelSU/Magisk Module
         uses: actions/upload-artifact@v4
         with:
-          name: Zygisk-Module-Zip
-          path: zygote/build/outputs/magisk/**
-          if-no-files-found: ignore
+          name: Zygisk-Release-Module
+          path: zygote/build/outputs/magisk/release/*.zip
+
+      - name: Upload Debug KernelSU/Magisk Module
+        uses: actions/upload-artifact@v4
+        with:
+          name: Zygisk-Debug-Module
+          path: zygote/build/outputs/magisk/debug/*.zip
           
