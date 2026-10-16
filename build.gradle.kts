@@ -74,7 +74,6 @@ val minSdkVer by extra(29)
 val targetSdkVer by extra(37)
 
 val appVerCode by extra(gitCommitCount + 0x6f7373)
-val appVerName by extra(gitVersionName)
 
 val gitVersionName: String get() {
     val suffix = try {
@@ -88,6 +87,8 @@ val gitVersionName: String get() {
     }
 }
 
+val appVerName by extra(gitVersionName)
+
 @Suppress("unused")
 val configVerCode by extra(93)
 
@@ -97,9 +98,9 @@ val serviceVerCode by extra(105)
 @Suppress("unused")
 val minBackupVerCode by extra(65)
 
-// Yahan tumhara personal package name set ho gaya!
+// Internal package name original rahega taaki Kotlin aur aidl bind ho sake
 @Suppress("unused")
-val appPackageName by extra("com.android.core.settings")
+val appPackageName by extra("org.frknkrc44.hma_oss")
 
 @Suppress("unused")
 val localBuild by extra(localProperties.getProperty("localBuild", "false") == "true")
@@ -127,7 +128,6 @@ fun Project.configureBaseExtension() {
 
         buildTypes {
             all {
-                // Hamesha debug signing use karega taaki key error na aaye
                 signingConfig = signingConfigs.getByName("debug")
             }
             named("release") {
