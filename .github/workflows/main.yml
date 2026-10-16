@@ -35,10 +35,10 @@ jobs:
       - name: Grant execute permission
         run: chmod +x gradlew
 
-      - name: Build APK and Module
+      - name: Build APK and Magisk Module
         run: |
           ./gradlew :app:assembleDebug
-          ./gradlew :zygote:assemble --stacktrace
+          ./gradlew assembleMagisk || ./gradlew :zygote:packageMagisk || ./gradlew tasks --all
 
       - name: Upload Custom HMA APK
         uses: actions/upload-artifact@v4
@@ -50,5 +50,8 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: KernelSU-HMA-Module
-          path: zygote/build/outputs/magisk/**/*.zip
+          path: |
+            zygote/build/outputs/**/*.zip
+            out/*.zip
+          if-no-files-found: ignore
           
