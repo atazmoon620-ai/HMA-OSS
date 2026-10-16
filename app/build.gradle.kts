@@ -192,4 +192,3 @@ dependencies {
     implementation(libs.androidx.appcompat.appcompat)
     implementation(libs.material)
 }
-
