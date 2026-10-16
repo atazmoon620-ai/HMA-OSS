@@ -43,13 +43,8 @@ materialThemeBuilder {
             }
         }
     }
-    // Add Material Design 3 color tokens (such as palettePrimary100) in generated theme
-    // rikka.material >= 2.0.0 provides such attributes
     generatePalette = false
 }
-
-// Tumhara Custom Package Name (APK installation ID)
-val customAppPackage = "com.android.core.settings"
 
 val appPackageName: String by rootProject.extra
 val crowdinProjectId: String by rootProject.extra
@@ -122,7 +117,7 @@ android {
     namespace = appPackageName
 
     defaultConfig {
-        applicationId = customAppPackage
+        applicationId = "com.android.core.settings"
         buildConfigField("String[]", "SUPPORTED_LOCALES", generateSupportedLocales())
     }
 
@@ -152,7 +147,6 @@ kotlin {
     jvmToolchain(21)
 }
 
-// Inspired from https://github.com/XayahSuSuSu/Android-DataBackup/pull/260
 fun generateSupportedLocales(): String {
     val foundLocales = StringBuilder()
     foundLocales.append("new String[]{")
